@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
@@ -24,17 +25,21 @@ namespace ConsoleUI
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
                 {
-
+                    services.AddTransient<IGreetingService, GreetingService>();
                 })
                 .UseSerilog()
                 .Build();
+
+            var service = ActivatorUtilities.CreateInstance<GreetingService>(host.Services);
+            service.Run();
         }
 
         private static void BuildConfig(IConfigurationBuilder builder)
         {
             builder.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
+                optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
         }
     }
